@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "noEmit": false,
+    "outDir": "./node_modules/.tmp/ui",
+    "tsBuildInfoFile": "./node_modules/.tmp/ui.tsbuildinfo"
+  },
+  "include": ["src/ui", "src/grammar", "src/protocol"]
+}
