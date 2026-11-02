@@ -9,6 +9,8 @@ import {
 import { useFigmaBridge } from "./bridge";
 import { BuilderPanel } from "./components/builder/BuilderPanel";
 import { ModeSwitch, type Mode } from "./components/ModeSwitch";
+import { MigratorPanel } from "./components/migrator/MigratorPanel";
+import { ResizeHandle } from "./components/ResizeHandle";
 import { ValidatorPanel } from "./components/validator/ValidatorPanel";
 
 export default function App() {
@@ -34,7 +36,7 @@ export default function App() {
               </Typography>
               {isMock ? (
                 <Badge style="warning" level="caption">
-                  Browser mock
+                  浏览器 mock
                 </Badge>
               ) : null}
             </Stack>
@@ -43,8 +45,8 @@ export default function App() {
               className="text-[var(--muted-foreground)]"
             >
               {init
-                ? `v${init.pluginVersion} · ${init.localVariableCount} local · ${init.localCollectionCount} collections`
-                : "Connecting to Figma…"}
+                ? `v${init.pluginVersion} · 本地变量 ${init.localVariableCount} 个 · ${init.localCollectionCount} 个 collection`
+                : "正在连接 Figma…"}
             </Typography>
           </header>
 
@@ -55,12 +57,16 @@ export default function App() {
           <main className="min-h-0 flex-1 overflow-hidden">
             {mode === "builder" ? (
               <BuilderPanel bridge={bridge} />
-            ) : (
+            ) : mode === "validator" ? (
               <ValidatorPanel bridge={bridge} />
+            ) : (
+              <MigratorPanel bridge={bridge} />
             )}
           </main>
         </TooltipProvider>
       </OverlayContainerProvider>
+
+      <ResizeHandle onResize={bridge.resize} disabled={isMock} />
     </div>
   );
 }

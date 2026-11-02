@@ -8,5 +8,5 @@
     "outDir": "./node_modules/.tmp/ui",
     "tsBuildInfoFile": "./node_modules/.tmp/ui.tsbuildinfo"
   },
-  "include": ["src/ui", "src/grammar", "src/protocol"]
+  "include": ["src/ui", "src/grammar", "src/paradigm", "src/protocol"]
 }

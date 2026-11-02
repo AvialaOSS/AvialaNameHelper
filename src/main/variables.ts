@@ -5,6 +5,7 @@
  */
 
 import type {
+  CollectionInfo,
   RenameFailure,
   RenameRequest,
   RenameSuccess,
@@ -45,6 +46,20 @@ export async function snapshotLocalVariables(): Promise<VariableInfo[]> {
     const info = meta.get(variable.variableCollectionId);
     return toInfo(variable, info?.name ?? "", info?.modeNames ?? []);
   });
+}
+
+/**
+ * Snapshot every local variable collection so the Builder can offer them as
+ * create targets. Remote (library) collections are excluded by the API itself.
+ */
+export async function snapshotLocalCollections(): Promise<CollectionInfo[]> {
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
+  return collections.map((collection) => ({
+    id: collection.id,
+    name: collection.name,
+    modeNames: collection.modes.map((mode) => mode.name),
+    defaultModeId: collection.defaultModeId,
+  }));
 }
 
 /** Describe a single variable (local or remote) by resolving its collection. */
@@ -126,4 +141,50 @@ export async function applyRenames(
   }
 
   return { renamed, failed };
+}
+
+export type CreateVariableRequest = {
+  name: string;
+  collectionId: string;
+  resolvedType: VariableResolvedType;
+};
+
+/**
+ * Create a new local variable in the given collection.
+ *
+ * Under `documentAccess: "dynamic-page"` the `createVariable(name, id, type)`
+ * overload throws, so we resolve the collection object first and use the
+ * `createVariable(name, collection, type)` overload. The variable is created
+ * with no value for any mode — this plugin's job is naming, not valuing — so
+ * the designer fills in the actual token value in Figma afterwards.
+ */
+export async function createVariable(
+  request: CreateVariableRequest
+): Promise<VariableInfo> {
+  const collection = await figma.variables.getVariableCollectionByIdAsync(
+    request.collectionId
+  );
+  if (!collection) {
+    throw new Error("Target collection no longer exists.");
+  }
+  if (collection.remote) {
+    throw new Error("Cannot add variables to a remote (library) collection.");
+  }
+
+  const variable = figma.variables.createVariable(
+    request.name,
+    collection,
+    request.resolvedType
+  );
+
+  return {
+    id: variable.id,
+    name: variable.name,
+    resolvedType: variable.resolvedType as VariableResolvedType,
+    collectionId: collection.id,
+    collectionName: collection.name,
+    modeNames: collection.modes.map((mode) => mode.name),
+    isRemote: variable.remote,
+    hiddenFromPublishing: variable.hiddenFromPublishing,
+  };
 }

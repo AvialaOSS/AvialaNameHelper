@@ -15,6 +15,7 @@ import { GeneralRename } from "@aviala-design/icons";
 import { suggestFix, validateName } from "../../../grammar";
 import type { RenameRequest, ScanScope } from "../../../protocol/messages";
 import type { FigmaBridge } from "../../bridge";
+import { useRowSelection } from "../../hooks/useRowSelection";
 import { canRenameRow, ResultsTable, type ResultRow } from "./ResultsTable";
 import { ScopePicker } from "./ScopePicker";
 
@@ -43,17 +44,10 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
     clearError,
   } = bridge;
   const [scope, setScope] = useState<ScanScope>("local");
-  const [selectedIds, setSelectedIds] = useState<ReadonlySet<string>>(
-    () => new Set()
-  );
 
   useEffect(() => {
     requestScan(scope);
   }, [requestScan, scope]);
-
-  useEffect(() => {
-    setSelectedIds(new Set());
-  }, [state.scan]);
 
   const rows = useMemo<ResultRow[]>(
     () =>
@@ -65,6 +59,15 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
     [state.scan]
   );
 
+  const renamableIds = useMemo(
+    () => rows.filter(canRenameRow).map((row) => row.variable.id),
+    [rows]
+  );
+  const { selectedIds, toggleRow, toggleAll } = useRowSelection(
+    renamableIds,
+    state.scan
+  );
+
   const renamable = rows.filter(canRenameRow);
   const selectedRenamable = renamable.filter((row) =>
     selectedIds.has(row.variable.id)
@@ -73,24 +76,6 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
   const validCount = rows.filter(
     (row) => !row.variable.isRemote && row.result.valid
   ).length;
-
-  const toggleRow = (id: string) =>
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-
-  const toggleAll = () =>
-    setSelectedIds((prev) => {
-      const allSelected =
-        renamable.length > 0 &&
-        renamable.every((row) => prev.has(row.variable.id));
-      return allSelected
-        ? new Set()
-        : new Set(renamable.map((row) => row.variable.id));
-    });
 
   const renameRow = (row: ResultRow) => {
     if (row.suggest.suggested)
@@ -136,7 +121,7 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
         <Alert
           type="error"
           size="small"
-          title="Scan failed"
+          title="扫描失败"
           description={state.error}
           dismissible
           onDismiss={clearError}
@@ -149,9 +134,9 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
             level="caption"
             className="text-[var(--muted-foreground)]"
           >
-            {`${rows.length} scanned · ${validCount} valid · ${renamable.length} fixable${
-              remoteCount ? ` · ${remoteCount} remote` : ""
-            }`}
+            {`已扫描 ${rows.length} 个 · 合规 ${validCount} 个 · 可修 ${
+              renamable.length
+            } 个${remoteCount ? ` · 远端 ${remoteCount} 个` : ""}`}
           </Typography>
           {selectedRenamable.length > 0 ? (
             <Stack
@@ -159,7 +144,7 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
               gap="inside"
               className="items-center justify-between"
             >
-              <Typography level="caption">{`${selectedRenamable.length} selected`}</Typography>
+              <Typography level="caption">{`已选 ${selectedRenamable.length} 个`}</Typography>
               <Button
                 size="small"
                 mode="primary"
@@ -167,7 +152,7 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
                 loading={state.applying}
                 onClick={batchRename}
               >
-                Rename selected
+                重命名所选
               </Button>
             </Stack>
           ) : null}
@@ -177,22 +162,22 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
       {!state.scan ? (
         state.scanning ? (
           <Stack direction="row" gap="inside" className="items-center">
-            <Loading level="text" label="Scanning" />
-            <Typography level="caption">Scanning variables…</Typography>
+            <Loading level="text" label="扫描中" />
+            <Typography level="caption">正在扫描变量…</Typography>
           </Stack>
         ) : (
           <EmptyState
-            title="No scan yet"
-            subtitle="Choose a scope and run a scan."
+            title="还没扫描"
+            subtitle="选一个范围，然后跑一次扫描。"
           />
         )
       ) : rows.length === 0 ? (
         <EmptyState
-          title="Nothing to check"
+          title="没有可校验的变量"
           subtitle={
             scope === "bound"
-              ? "No local variables are bound to the current selection."
-              : "This file has no local variables."
+              ? "当前选中的节点上没有绑定任何本地变量。"
+              : "这个文件里没有本地变量。"
           }
         />
       ) : (
@@ -214,8 +199,8 @@ export function ValidatorPanel({ bridge }: { bridge: FigmaBridge }) {
           size="small"
           showClose
           onClose={clearApply}
-          title={`${apply.renamed.length} renamed${
-            apply.failed.length ? `, ${apply.failed.length} failed` : ""
+          title={`已重命名 ${apply.renamed.length} 个${
+            apply.failed.length ? `，失败 ${apply.failed.length} 个` : ""
           }`}
           description={
             apply.failed.length

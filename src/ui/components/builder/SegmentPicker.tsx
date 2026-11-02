@@ -41,7 +41,7 @@ export function SegmentPicker({
   onChange,
   options,
   groups,
-  placeholder = "Select…",
+  placeholder = "请选择…",
   disabled = false,
   allowEmpty = false,
   hint,
@@ -61,7 +61,7 @@ export function SegmentPicker({
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          {allowEmpty ? <SelectItem value={EMPTY}>— none —</SelectItem> : null}
+          {allowEmpty ? <SelectItem value={EMPTY}>— 无 —</SelectItem> : null}
           {groups
             ? groups.map((group) => (
                 <SelectGroup key={group.label}>

@@ -1,18 +1,6 @@
-import {
-  Alert,
-  Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Stack,
-  Tag,
-  Typography,
-} from "@aviala-design/spiral";
-import { EditCopy, SymbolRightCircle } from "@aviala-design/icons";
+import { Button, Stack, Tag, Typography } from "@aviala-design/spiral";
+import { EditCopy, SymbolAdd } from "@aviala-design/icons";
 import type { NameParts } from "../../../grammar";
-import type { VariableInfo } from "../../../protocol/messages";
 
 export type SegmentSlot = "category" | "property" | "variant" | "state";
 
@@ -25,18 +13,16 @@ const SLOTS: readonly SegmentSlot[] = [
 
 type NamePreviewProps = {
   name: string;
+  /** True once category + property are chosen, i.e. the name is usable. */
   complete: boolean;
   parts: NameParts;
   onClearSegment: (slot: SegmentSlot) => void;
-  /** Bound local variables the composed name can be applied to. */
-  targets: VariableInfo[];
-  targetId: string;
-  onTargetChange: (id: string) => void;
-  hasRemote: boolean;
-  applying: boolean;
+  /** True when a name is composed AND a destination collection is chosen. */
+  canCreate: boolean;
+  creating: boolean;
   copied: boolean;
   onCopy: () => void;
-  onApply: () => void;
+  onCreate: () => void;
 };
 
 export function NamePreview({
@@ -44,14 +30,11 @@ export function NamePreview({
   complete,
   parts,
   onClearSegment,
-  targets,
-  targetId,
-  onTargetChange,
-  hasRemote,
-  applying,
+  canCreate,
+  creating,
   copied,
   onCopy,
-  onApply,
+  onCreate,
 }: NamePreviewProps) {
   const activeSlots = SLOTS.filter((slot) => parts[slot]);
 
@@ -70,7 +53,7 @@ export function NamePreview({
               key={slot}
               level="caption"
               closable
-              closeLabel={`Clear ${slot}`}
+              closeLabel={`清除 ${slot}`}
               onClose={() => onClearSegment(slot)}
             >
               {parts[slot]}
@@ -79,70 +62,16 @@ export function NamePreview({
         </Stack>
       ) : null}
 
-      {hasRemote ? (
-        <Alert
-          type="warning"
-          size="small"
-          title="Read-only variables"
-          description="Remote variables in the selection cannot be renamed."
-        />
-      ) : null}
-
-      {targets.length > 0 ? (
-        <Stack gap="inside">
-          <Typography
-            level="caption"
-            className="text-[var(--muted-foreground)]"
-          >
-            Apply to a bound variable
-          </Typography>
-          <Stack direction="row" gap="inside" className="items-center">
-            <Select
-              value={targetId}
-              onValueChange={onTargetChange}
-              disabled={applying}
-            >
-              <SelectTrigger size="regular" className="flex-1">
-                <SelectValue placeholder="Choose a variable" />
-              </SelectTrigger>
-              <SelectContent>
-                {targets.map((target) => (
-                  <SelectItem key={target.id} value={target.id}>
-                    {target.name} · {target.collectionName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              mode="primary"
-              size="regular"
-              leftIcon={<SymbolRightCircle aria-hidden />}
-              loading={applying}
-              disabled={!complete || !targetId}
-              onClick={onApply}
-            >
-              Apply
-            </Button>
-          </Stack>
-        </Stack>
-      ) : (
-        <Stack gap="inside">
-          <Button
-            mode="primary"
-            size="regular"
-            leftIcon={<SymbolRightCircle aria-hidden />}
-            disabled
-          >
-            Apply to selection
-          </Button>
-          <Typography
-            level="caption"
-            className="text-[var(--muted-foreground)]"
-          >
-            Select a node with bound local variables to apply the composed name.
-          </Typography>
-        </Stack>
-      )}
+      <Button
+        mode="primary"
+        size="regular"
+        leftIcon={<SymbolAdd aria-hidden />}
+        loading={creating}
+        disabled={!canCreate}
+        onClick={onCreate}
+      >
+        创建变量
+      </Button>
 
       <Button
         mode="second"
@@ -151,7 +80,7 @@ export function NamePreview({
         disabled={!complete}
         onClick={onCopy}
       >
-        {copied ? "Copied" : "Copy name"}
+        {copied ? "已复制" : "复制名字"}
       </Button>
     </Stack>
   );

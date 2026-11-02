@@ -43,6 +43,31 @@ export default tseslint.config(
     rules: { "no-undef": "off" },
   },
 
+  // Shared pure modules: no DOM, no Node, no sandbox. `src/paradigm` and
+  // `src/protocol` are imported by both tsconfig projects, so the main project
+  // (lib: ES2022, no DOM) already turns accidental `window` use into a type
+  // error. This block is the lint-side twin of that gate — and it must come
+  // after the base browser-globals block above, or lint would *permit* exactly
+  // what the type gate forbids. `figma` is restricted here though `src/main`
+  // deliberately allows it: pure modules must never touch the sandbox global.
+  {
+    files: ["src/paradigm/**/*.ts", "src/protocol/**/*.ts"],
+    languageOptions: {
+      globals: { ...globals.es2022 },
+    },
+    rules: {
+      "no-restricted-globals": [
+        "error",
+        "window",
+        "document",
+        "navigator",
+        "fetch",
+        "localStorage",
+        "figma",
+      ],
+    },
+  },
+
   // Figma sandbox: no DOM, no Node — only ES2022 plus the `figma` / `__html__`
   // globals. Restricting DOM globals here catches accidental `window` use that
   // would crash the sandbox at runtime.

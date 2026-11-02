@@ -1,7 +1,11 @@
 import { SegmentatorGroup, SegmentatorItem } from "@aviala-design/spiral";
-import { GeneralSearch, SymbolAdd } from "@aviala-design/icons";
+import {
+  GeneralSearch,
+  GeneralTodoList,
+  SymbolAdd,
+} from "@aviala-design/icons";
 
-export type Mode = "builder" | "validator";
+export type Mode = "builder" | "validator" | "migrator";
 
 type ModeSwitchProps = {
   value: Mode;
@@ -17,13 +21,19 @@ export function ModeSwitch({ value, onChange }: ModeSwitchProps) {
       equalWidth
     >
       <SegmentatorItem value="builder" leftIcon={<SymbolAdd aria-hidden />}>
-        Builder
+        新建变量
       </SegmentatorItem>
       <SegmentatorItem
         value="validator"
         leftIcon={<GeneralSearch aria-hidden />}
       >
-        Validator
+        名字校验
+      </SegmentatorItem>
+      <SegmentatorItem
+        value="migrator"
+        leftIcon={<GeneralTodoList aria-hidden />}
+      >
+        范式迁移
       </SegmentatorItem>
     </SegmentatorGroup>
   );

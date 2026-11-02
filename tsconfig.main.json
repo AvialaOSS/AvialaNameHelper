@@ -8,5 +8,5 @@
     "outDir": "./node_modules/.tmp/main",
     "tsBuildInfoFile": "./node_modules/.tmp/main.tsbuildinfo"
   },
-  "include": ["src/main", "src/grammar", "src/protocol"]
+  "include": ["src/main", "src/grammar", "src/paradigm", "src/protocol"]
 }

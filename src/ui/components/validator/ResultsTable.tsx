@@ -32,9 +32,9 @@ function statusOf(row: ResultRow): {
   label: string;
   style: "success" | "fail" | "normal";
 } {
-  if (row.variable.isRemote) return { label: "Remote", style: "normal" };
-  if (row.result.valid) return { label: "Valid", style: "success" };
-  return { label: "Invalid", style: "fail" };
+  if (row.variable.isRemote) return { label: "远端", style: "normal" };
+  if (row.result.valid) return { label: "合规", style: "success" };
+  return { label: "不合规", style: "fail" };
 }
 
 type ResultsTableProps = {
@@ -77,8 +77,8 @@ export function ResultsTable({
             disabled: renamable.length === 0,
           }}
         />
-        <TableHead>Variable</TableHead>
-        <TableHead>Result</TableHead>
+        <TableHead>变量</TableHead>
+        <TableHead>校验结果</TableHead>
       </TableRow>
       {rows.map((row) => {
         const status = statusOf(row);
@@ -121,7 +121,7 @@ export function ResultsTable({
                   level="caption"
                   className="text-[var(--muted-foreground)]"
                 >
-                  Conforms to the grammar.
+                  符合命名语法。
                 </Typography>
               ) : (
                 <Stack gap="inside" className="w-full">
@@ -143,7 +143,7 @@ export function ResultsTable({
                         disabled={!renamableRow}
                         onClick={() => onRenameRow(row)}
                       >
-                        Rename
+                        重命名
                       </Button>
                     </Stack>
                   ) : (
@@ -151,7 +151,7 @@ export function ResultsTable({
                       level="caption"
                       className="text-[var(--muted-foreground)]"
                     >
-                      No automatic fix.
+                      没有可用的自动修法。
                     </Typography>
                   )}
                 </Stack>

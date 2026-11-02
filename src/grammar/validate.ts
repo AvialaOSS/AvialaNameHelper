@@ -29,16 +29,16 @@ export type ValidationResult = {
 
 /** Human-readable label for each issue code (used by the UI legend/tooltips). */
 export const ISSUE_LABELS: Readonly<Record<IssueCode, string>> = {
-  "missing-prefix": "Missing --aviala- prefix",
-  "empty-segment": "Empty segment",
-  "unknown-category": "Unknown category",
-  "unknown-property": "Unknown property",
-  "unknown-variant": "Unknown variant",
-  "unknown-state": "Unknown state",
-  "case-violation": "Case violation",
-  "group-separator": "Figma group separator",
-  "unrecognized-tail": "Unrecognized tail",
-  malformed: "Malformed",
+  "missing-prefix": "缺少 --aviala- 前缀",
+  "empty-segment": "存在空段",
+  "unknown-category": "未知的 category",
+  "unknown-property": "未知的 property",
+  "unknown-variant": "未知的 variant",
+  "unknown-state": "未知的 state",
+  "case-violation": "大小写不合规",
+  "group-separator": "含 Figma 分组分隔符",
+  "unrecognized-tail": "无法识别的尾段",
+  malformed: "格式错误",
 };
 
 /**
@@ -51,7 +51,7 @@ export function validateName(name: string): ValidationResult {
   if (typeof name !== "string" || name.trim().length === 0) {
     return {
       valid: false,
-      issues: [{ code: "malformed", message: "Name is empty." }],
+      issues: [{ code: "malformed", message: "名字是空的。" }],
     };
   }
 
@@ -60,8 +60,7 @@ export function validateName(name: string): ValidationResult {
   if (trimmed.includes("/")) {
     issues.push({
       code: "group-separator",
-      message:
-        'Contains the Figma group separator "/"; canonical names are flat.',
+      message: "含有 Figma 的分组分隔符「/」；规范名字是扁平的。",
     });
   }
 
@@ -73,7 +72,7 @@ export function validateName(name: string): ValidationResult {
     if (/[A-Z]/.test(token) && !CASE_WHITELIST.has(token)) {
       issues.push({
         code: "case-violation",
-        message: `Segment "${token}" must be lowercase.`,
+        message: `片段「${token}」必须是小写。`,
       });
     }
   }
@@ -88,34 +87,33 @@ export function validateName(name: string): ValidationResult {
     case "missing-prefix":
       issues.push({
         code: "missing-prefix",
-        message: `Must start with "${NAME_PREFIX}".`,
+        message: `必须以「${NAME_PREFIX}」开头。`,
       });
       break;
     case "empty":
       issues.push({
         code: "malformed",
-        message: "Nothing follows the prefix.",
+        message: "前缀后面什么也没有。",
       });
       break;
     case "empty-segment":
       issues.push({
         code: "empty-segment",
-        message:
-          "Contains an empty segment (doubled, leading or trailing dash).",
+        message: "含有空段（连字符重复，或开头／结尾多了一个）。",
       });
       break;
     case "unknown-category":
       issues.push({
         code: "unknown-category",
         message: rest
-          ? `"${rest}" does not start with a known category.`
-          : "Unknown category.",
+          ? `「${rest}」不是以任何已知的 category 开头。`
+          : "未知的 category。",
       });
       break;
     case "unknown-property":
       issues.push({
         code: "unknown-property",
-        message: `"${rest}" is not a property of "${parsed.parts.category}".`,
+        message: `「${rest}」不是「${parsed.parts.category}」的 property。`,
       });
       break;
     case "unrecognized-tail": {
@@ -132,17 +130,17 @@ export function validateName(name: string): ValidationResult {
       if (variantOpen && knownWord) {
         issues.push({
           code: "unknown-variant",
-          message: `"${rest}" is not a valid variant here.`,
+          message: `「${rest}」在这里不是合法的 variant。`,
         });
       } else if (stateOpen && knownWord) {
         issues.push({
           code: "unknown-state",
-          message: `"${rest}" is not a valid state here.`,
+          message: `「${rest}」在这里不是合法的 state。`,
         });
       } else {
         issues.push({
           code: "unrecognized-tail",
-          message: `Unrecognized trailing segment "${rest}".`,
+          message: `无法识别的尾段「${rest}」。`,
         });
       }
       break;

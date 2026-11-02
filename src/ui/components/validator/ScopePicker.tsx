@@ -28,18 +28,18 @@ export function ScopePicker({
       >
         <RadioInput
           value="bound"
-          title="Bound to selection"
+          title="绑定到当前选中"
           description={
             hasSelection
-              ? `${boundCount} variable(s) on the selected node(s)`
-              : "Select a node on the canvas first"
+              ? `选中的节点上有 ${boundCount} 个变量`
+              : "请先在画布上选中一个节点"
           }
           disabled={!hasSelection}
         />
         <RadioInput
           value="local"
-          title="All local variables"
-          description="Every variable defined in this file"
+          title="全部本地变量"
+          description="这个文件里定义的每一个变量"
         />
       </RadioGroup>
       <Button
@@ -49,7 +49,7 @@ export function ScopePicker({
         loading={scanning}
         onClick={onScan}
       >
-        Scan
+        扫描
       </Button>
     </Stack>
   );
